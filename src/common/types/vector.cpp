@@ -2438,6 +2438,12 @@ void StringVector::AddHeapReference(Vector &vector, Vector &other) {
 		StringVector::AddHeapReference(vector, DictionaryVector::Child(other));
 		return;
 	}
+	// Also propagate the buffer if it has auxiliary data (e.g., ArrowAuxiliaryData)
+	// The buffer may hold ownership of external memory (like Arrow buffers) that
+	// the string_t values point into via zero-copy
+	if (other.GetBuffer() && other.GetBuffer()->GetAuxiliaryData()) {
+		StringVector::AddBuffer(vector, other.GetBuffer());
+	}
 	if (!other.auxiliary) {
 		return;
 	}
